@@ -21,10 +21,20 @@ func BalloonMain() {
     }
 
 	fd, error := os.Open(os.Args[1])
-
 	if error != nil {
-		fmt.Println(error)
+		panic(error)
 	}
+
+	//optional second parameter to provide the num services to scan
+	NUM_READ := 0
+	if len(os.Args) == 3 {
+		NUM_READ, error =  strconv.Atoi(os.Args[2])
+		if error != nil {
+			panic(error)
+		}
+    }
+
+
 
 	defer fd.Close()
 
@@ -38,14 +48,15 @@ func BalloonMain() {
 	var str_ip string
 	var str_port string
 	new_ip := []byte{}
+	counter := 0
 
 	//skip header
 	scanner.Scan()
 
 	//MAIN
 	for scanner.Scan() {
+		counter += 1
         line = scanner.Text()
-
         line = strings.TrimSuffix(line, "\n")
         s := strings.Split(line,",")
 
@@ -97,6 +108,9 @@ func BalloonMain() {
         //return ip:port
         fmt.Printf("%s:%s\n",str_ip,str_port)
 
+		if NUM_READ != 0 && counter > NUM_READ {
+			break
+		}
     }
 
 }//end of main
