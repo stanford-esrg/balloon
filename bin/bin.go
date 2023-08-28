@@ -5,10 +5,10 @@ import (
 	"os"
 	"fmt"
 	"bufio"
-	"strings"
+	//"strings"
 	"strconv"
-	"encoding/hex"
-	//"github.com/stanford-esrg/balloon"
+	"math"
+	"github.com/stanford-esrg/balloon"
 )
 
 
@@ -26,13 +26,25 @@ func BalloonMain() {
 	}
 
 	//optional second parameter to provide the num services to scan
-	NUM_READ := 0
-	if len(os.Args) == 3 {
-		NUM_READ, error =  strconv.Atoi(os.Args[2])
-		if error != nil {
-			panic(error)
+	var NUM_READ int64 = 0
+	if len(os.Args) > 2 {
+		if os.Args[2] != "-" {
+
+			NUM_READ, error =  strconv.ParseInt(os.Args[2], 10, 64)
+			fmt.Fprintf(os.Stderr,"Writing up to %d services\n", NUM_READ)
+			if error != nil {
+				panic(error)
+			}
+		} else {
+
+			NUM_READ = math.MaxInt64
+
 		}
-    }
+    } else {
+
+		NUM_READ = math.MaxInt64
+
+	}
 
 
 
@@ -42,75 +54,24 @@ func BalloonMain() {
 	// read compressed file
 	scanner := bufio.NewScanner(fd)
 
-	//init variables
-	compare := false
-	var line string
-	var str_ip string
-	var str_port string
-	new_ip := []byte{}
-	counter := 0
-
 	//skip header
 	scanner.Scan()
 
-	//MAIN
-	for scanner.Scan() {
-		counter += 1
-        line = scanner.Text()
-        line = strings.TrimSuffix(line, "\n")
-        s := strings.Split(line,",")
+	if len(os.Args) > 3 {
 
-        if len(s) != 2 {
-           panic("Error parsing compressed-input list")
+		SUB_SIZE, error :=  strconv.ParseInt(os.Args[3], 10, 64)
+        fmt.Fprintf(os.Stderr,"Scanning /%d subnetworks\n", SUB_SIZE)
+        if error != nil {
+            panic(error)
         }
 
-        portHex, ipHex := s[0], s[1]
+		balloon.HandleSubnets( NUM_READ, scanner, SUB_SIZE )
 
-        ipByte, err := hex.DecodeString(ipHex)
+	} else {
 
-        if err != nil {
-            panic(err)
-        }
 
-        //fmt.Printf("Prev ipByte: %d\n",new_ip)
-        //fmt.Printf("Cur ipByte: %d\n",ipByte)
+		balloon.HandleServices( NUM_READ, scanner )
 
-        portByte, emptyPort := strconv.ParseInt(portHex, 16, 16)
-        //fmt.Printf("Cur port: %d\n",portByte)
-
-        //fill in the rest of the IP
-        if compare {
-
-            for i, bytte := range ipByte {
-                new_ip[i] = bytte
-            }
-
-        } else {
-
-            compare = true
-            new_ip = ipByte
-            str_port =  strconv.Itoa(int(portByte))
-        }
-
-        str_ip = ""
-        //conver array of bytes to ip address
-        for i, bytte := range new_ip {
-
-            str_ip +=strconv.Itoa(int(bytte))
-            if i < 3 {
-                str_ip += "."
-            }
-        }
-        if emptyPort == nil {
-            str_port =  strconv.Itoa(int(portByte))
-        }
-
-        //return ip:port
-        fmt.Printf("%s:%s\n",str_ip,str_port)
-
-		if NUM_READ != 0 && counter > NUM_READ {
-			break
-		}
     }
 
 }//end of main
