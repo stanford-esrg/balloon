@@ -15,11 +15,27 @@ balloon inflates IPv4 services that are compressed using:
 
 ## Usage
 
-To inflate a list of delta-compressed IPv4 called `theList.csv`:
+To inflate a list of delta-compressed IPv4 services called `theList.csv`:
 
 ```
 ./balloon theList.csv
 ```
+
+To inflate only N=100 number of delta-compressed IPv4 services from `theList.csv`:
+
+
+```
+./balloon theList.csv 100
+```
+
+To treat `theList.csv as a list of delta-compressed IPv4 subnets, of size /N (e.g., /16) that need to be inflated:
+
+
+```
+./balloon theList.csv - 16
+```
+
+This will produce a list of randomized services that are hosted on the given port within the given subnetwork.  
 
 ## How to delta-compress IPv4 services
 
