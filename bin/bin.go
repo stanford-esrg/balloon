@@ -55,7 +55,7 @@ func BalloonMain() {
 	scanner := bufio.NewScanner(fd)
 
 	//skip header
-	scanner.Scan()
+	//scanner.Scan()
 
 	if len(os.Args) > 3 {
 
